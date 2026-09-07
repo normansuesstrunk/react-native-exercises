@@ -10,7 +10,7 @@
 
 ```jsx
 import React from 'react';
-import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 
 const Greeting = () => {
   return <Text style={styles.greeting}>Hallo, Welt!</Text>;
@@ -18,11 +18,11 @@ const Greeting = () => {
 
 export default function App() {
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Greeting />
       <Greeting />
       <Greeting />
-    </SafeAreaView>
+    </View>
   );
 }
 
