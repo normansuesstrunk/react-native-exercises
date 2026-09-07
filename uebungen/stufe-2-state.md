@@ -10,7 +10,7 @@
 
 ```jsx
 import React, {useState} from 'react';
-import {StyleSheet, Text, TextInput} from 'react-native';
+import {View, StyleSheet, Text, TextInput} from 'react-native';
 
 export default function App() {
   const [text, setText] = useState('');
