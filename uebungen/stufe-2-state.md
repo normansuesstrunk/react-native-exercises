@@ -10,13 +10,13 @@
 
 ```jsx
 import React, {useState} from 'react';
-import {SafeAreaView, StyleSheet, Text, TextInput} from 'react-native';
+import {StyleSheet, Text, TextInput} from 'react-native';
 
 export default function App() {
   const [text, setText] = useState('');
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <TextInput
         style={styles.input}
         placeholder="Tippe hier zum Übersetzen!"
@@ -26,7 +26,7 @@ export default function App() {
       <Text style={styles.pizza}>
         {text.split(' ').map(word => word && '🍕').join(' ')}
       </Text>
-    </SafeAreaView>
+    </View>
   );
 }
 
