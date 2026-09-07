@@ -35,7 +35,7 @@ Lösungen liegen in [loesungen/](loesungen/) — **erst nach eigenem Versuch öf
 **Variante B (lokal):**
 
 ```bash
-npx create-expo-app@latest rn-uebungen --template blank
+npx create-expo-app@latest rn-uebungen --template blank-typescript
 cd rn-uebungen
 npx expo start
 ```
