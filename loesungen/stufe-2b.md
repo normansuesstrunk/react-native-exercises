@@ -2,7 +2,13 @@
 
 ```jsx
 import React, {useState} from 'react';
-import {Button, StyleSheet, Text, TextInput, View} from 'react-native';
+import {Button, FlatList, StyleSheet, Text, TextInput, View} from 'react-native';
+
+// Eine eigene Komponente für eine Zeile: bekommt den Text als Prop (Stufe 1)
+// und kümmert sich nur ums Aussehen eines einzelnen Eintrags.
+function Item({title}) {
+  return <Text style={styles.item}>{title}</Text>;
+}
 
 export default function App() {
   const [text, setText] = useState('');     // Inhalt des Eingabefelds
@@ -75,22 +81,23 @@ export default function App() {
         <Button title="Alles löschen" onPress={clearAll} disabled={isEmpty} />
       </View>
 
-      {/* 2b.3: Anzahl ist berechnet (items.length), nicht gespeichert. */}
-      {isEmpty ? (
-        <Text style={styles.hint}>Noch nichts auf der Liste.</Text>
-      ) : (
-        <Text style={styles.count}>{items.length} Einträge</Text>
-      )}
-
-      {/* map wandelt jedes Array-Element in ein JSX-Element um.
-          key hilft React, die Zeilen zwischen zwei Renders zuzuordnen.
-          Der Index reicht hier knapp, weil nur angehängt und hinten
-          entfernt wird — siehe Erklärung unten. */}
-      {items.map((item, index) => (
-        <Text key={index} style={styles.item}>
-          {item}
-        </Text>
-      ))}
+      {/* 2b.3: FlatList bekommt das Array als `data` und baut die Zeilen
+          selbst. Sie scrollt und rendert nur, was gerade sichtbar ist. */}
+      <FlatList
+        data={items}
+        // renderItem bekommt pro Eintrag ein Objekt — uns interessiert `item`.
+        // Der String wird als Prop an <Item> weitergereicht.
+        renderItem={({item}) => <Item title={item} />}
+        // Das key-Prop setzt FlatList selbst; den Wert liefert keyExtractor.
+        // Der Index reicht hier knapp — siehe Erklärung unten.
+        keyExtractor={(item, index) => String(index)}
+        // Anzahl ist berechnet (items.length), nicht gespeichert.
+        // Bei leerer Liste kein Header, sonst stünde "0 Einträge" über dem Hinweis.
+        ListHeaderComponent={
+          isEmpty ? null : <Text style={styles.count}>{items.length} Einträge</Text>
+        }
+        ListEmptyComponent={<Text style={styles.hint}>Noch nichts auf der Liste.</Text>}
+      />
     </View>
   );
 }
@@ -161,14 +168,51 @@ lässt, gehört nicht in den State.**
 Dass `setText('')` das Eingabefeld sichtbar leert, funktioniert nur wegen `value={text}`.
 Mit `defaultValue` würde der State geleert, das Feld aber weiter den alten Text zeigen.
 
-**2b.3 — `map` und `key`.**
-`map` liefert ein Array von JSX-Elementen; React rendert Arrays direkt. Das `key`-Prop
-sagt React, welches Element zwischen zwei Renders "dasselbe" ist.
+**2b.3 — `FlatList` statt `map`.**
+Ein Array lässt sich auch direkt mit `map` rendern — React rendert Arrays von JSX-Elementen:
 
-Der Index als Key ist hier vertretbar, weil nur **hinten** angehängt und entfernt wird —
-die Zuordnung Index → Eintrag bleibt dabei stabil. Sobald vorne oder in der Mitte gelöscht,
-eingefügt oder sortiert wird, rutschen alle Indizes und React recycelt den internen Zustand
-der falschen Zeile. Dann braucht es eine stabile `id` pro Eintrag → [Stufe 4](stufe-4.md).
+```jsx
+{items.map((item, index) => (
+  <Text key={index} style={styles.item}>{item}</Text>
+))}
+```
+
+Das ist für kurze Listen völlig in Ordnung, hat aber zwei Grenzen: es rendert **alle**
+Einträge auf einmal, und die Liste **scrollt nicht**. `FlatList` nimmt einem beides ab:
+
+| `map` | `FlatList` |
+|---|---|
+| Array direkt in JSX | `data={items}` |
+| `key={...}` am Element | `keyExtractor={(item, index) => ...}` |
+| JSX im `map`-Callback | `renderItem={({item}) => ...}` |
+| eigenes Ternär für "leer" | `ListEmptyComponent` |
+| eigener `<Text>` darüber | `ListHeaderComponent` |
+| rendert alles | rendert nur das Sichtbare, scrollt |
+
+Wichtig bei `renderItem`: der Callback bekommt **ein Objekt**, nicht den Eintrag selbst —
+daher das Destructuring `({item})`. Ein häufiger Anfängerfehler ist `renderItem={(item) => …}`;
+dann ist `item` das Wrapper-Objekt und die Zeile bleibt leer.
+
+**Die Zeile als eigene Komponente.** `renderItem` gibt hier nicht direkt `<Text>` zurück,
+sondern `<Item title={item} />`. Damit landet das Aussehen einer Zeile an einer Stelle und
+`App` beschreibt nur noch die Liste — genau die Props-Idee aus [Stufe 1](../uebungen/stufe-1-props.md).
+
+Zweiter klassischer Stolperstein dabei: die geschweiften Klammern.
+
+```jsx
+<Item title={item} />    // ✅ der Wert aus der Variablen
+<Item title="{item}" />  // ❌ der literale Text "{item}" in jeder Zeile
+```
+
+Das `key`-Prop setzt man bei `FlatList` **nicht** selbst ans Element — den Wert liefert
+`keyExtractor`. Der Index als Key ist hier vertretbar, weil nur **hinten** angehängt und
+entfernt wird; die Zuordnung Index → Eintrag bleibt dabei stabil. Sobald vorne oder in der
+Mitte gelöscht, eingefügt oder sortiert wird, rutschen alle Indizes und React recycelt den
+internen Zustand der falschen Zeile. Dann braucht es eine stabile `id` pro Eintrag →
+[Stufe 4](stufe-4.md).
+
+`FlatList` bringt eigenes Scrolling mit. Deshalb gehört sie **nicht** in eine `ScrollView`
+— zwei verschachtelte Scroll-Container vertragen sich nicht, und React Native warnt davor.
 
 **Ausblick (Reflexionsfrage 5).**
 Für ein "erledigt"-Häkchen reichen Strings nicht mehr; jeder Eintrag wird zum Objekt:
@@ -181,6 +225,8 @@ Damit ändert sich das Hinzufügen kaum (`[...prev, neuesObjekt]`), aber Umschal
 Löschen laufen über `map`/`filter` mit der `id` statt über den Index — genau das ist der
 Inhalt von [Stufe 4](stufe-4.md).
 
-**Grenze dieser Lösung.** `items.map(...)` rendert **alle** Einträge auf einmal und die
-Liste scrollt nicht. Für kurze Listen ist das richtig und am einfachsten. Ab vielen
-Einträgen übernimmt `FlatList` (rendert nur das Sichtbare) → [Stufe 4](stufe-4.md).
+**Grenze dieser Lösung.** Die Einträge sind schlichte Strings, und der Key ist der Index.
+Beides trägt nur, solange ausschließlich hinten angehängt und entfernt wird. Sobald
+Einträge einzeln gelöscht, umsortiert oder verändert werden, braucht jeder Eintrag eine
+eigene `id` — und `keyExtractor` liefert dann `item.id` statt des Index →
+[Stufe 4](stufe-4.md).

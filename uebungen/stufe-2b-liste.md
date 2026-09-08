@@ -116,32 +116,53 @@ const canAdd = text.trim().length > 0;
 
 **Akzeptanzkriterien**
 
-- [ ] Alle Einträge werden untereinander angezeigt.
+- [ ] Alle Einträge werden untereinander angezeigt — gerendert mit einer **`FlatList`**.
 - [ ] Über der Liste steht die Anzahl: `3 Einträge`.
-- [ ] Bei leerer Liste steht stattdessen `Noch nichts auf der Liste.`
+- [ ] Bei leerer Liste steht stattdessen `Noch nichts auf der Liste.` (und **keine** `0 Einträge`).
 - [ ] Die Anzahl ist **berechnet**, nicht in einem eigenen `useState` gespeichert.
+- [ ] Eine eigene Komponente `Item` rendert eine einzelne Zeile und bekommt den Text als Prop.
 
 <details><summary>Hinweis</summary>
 
-Ein Array wird mit `map` in JSX-Elemente umgewandelt. Jedes Kind braucht ein `key`-Prop,
-damit React die Elemente auseinanderhalten kann:
+`FlatList` bekommt das Array als `data` und baut die Zeilen selbst — sie scrollt und
+rendert nur, was gerade sichtbar ist. Nicht vergessen, sie oben zu importieren:
+`import {Button, FlatList, StyleSheet, ...} from 'react-native';`
 
 ```jsx
-{items.map((item, index) => (
-  <Text key={index} style={styles.item}>{item}</Text>
-))}
+// eine Zeile als eigene Komponente — bekommt den Text als Prop (Stufe 1)
+function Item({title}) {
+  return <Text style={styles.item}>{title}</Text>;
+}
+
+<FlatList
+  data={items}
+  renderItem={({item}) => <Item title={item} />}
+  keyExtractor={(item, index) => String(index)}
+/>
 ```
 
-> Der Index als `key` ist **nur** okay, solange ausschließlich hinten angehängt wird.
+Drei Stolpersteine:
+
+- `renderItem` bekommt **ein Objekt**, nicht den Eintrag selbst — daher `({item})`.
+  Mit `renderItem={(item) => …}` bleiben die Zeilen leer.
+- `title={item}` mit geschweiften Klammern. `title="{item}"` zeigt den Text `{item}`.
+- Das `key`-Prop setzt `FlatList` selbst — den Wert liefert `keyExtractor`.
+
+> Der Index als Key ist **nur** okay, solange ausschließlich hinten angehängt wird.
 > Sobald gelöscht oder sortiert wird, gibt es Probleme — mehr dazu in Aufgabe 2b.5 und in [Stufe 4](stufe-4-formular-und-liste.md).
 
-Anzahl: `items.length`. Für die Fallunterscheidung eignet sich ein Ternär:
+Anzahl (`items.length`) und Leer-Hinweis brauchen kein eigenes JSX daneben — dafür hat
+`FlatList` eigene Props:
 
 ```jsx
-{items.length === 0
-  ? <Text style={styles.hint}>Noch nichts auf der Liste.</Text>
-  : <Text style={styles.count}>{items.length} Einträge</Text>}
+  ListHeaderComponent={
+    items.length === 0 ? null : <Text style={styles.count}>{items.length} Einträge</Text>
+  }
+  ListEmptyComponent={<Text style={styles.hint}>Noch nichts auf der Liste.</Text>}
 ```
+
+Der Header wird **immer** gerendert, auch bei leerer Liste — deshalb dort `null`,
+sonst steht `0 Einträge` über dem Hinweis.
 </details>
 
 ---
@@ -221,7 +242,7 @@ den String selbst und React Native wirft dann *"Text strings must be rendered wi
 1. Warum funktioniert `items.push(text)` nicht, obwohl das Array danach den neuen Eintrag enthält?
 2. Was ist der Unterschied zwischen `setItems([...items, text])` und `setItems(prev => [...prev, text])`? In welcher Situation macht das einen Unterschied?
 3. Warum ist `items.length` **kein** Fall für `useState`?
-4. Wozu dient das `key`-Prop bei `map` — und warum ist der Index nur eine Notlösung?
+4. Wozu dient `keyExtractor` bei `FlatList` — und warum ist der Index nur eine Notlösung?
 5. Die Liste enthält aktuell **Strings**. Was müsste sich ändern, um pro Eintrag zusätzlich ein Häkchen "erledigt" zu speichern?
 
 ➡️ Weiter mit [Stufe 3](stufe-3-props-und-state.md) · Lösung: [loesungen/stufe-2b.md](../loesungen/stufe-2b.md)
