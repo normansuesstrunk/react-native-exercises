@@ -132,4 +132,4 @@ Erweitere den Screen um ein zweites Eingabefeld (z. B. "Vorname" und "Nachname")
 3. Wann ist ein Feld "kontrolliert" und welchen Vorteil bringt das?
 4. Warum ist ein zusätzliches `const [wordCount, setWordCount] = useState(0)` in Aufgabe 2.1 eine schlechte Idee?
 
-➡️ Weiter mit [Stufe 3](stufe-3-props-und-state.md) · Lösung: [loesungen/stufe-2.md](../loesungen/stufe-2.md)
+➡️ Weiter mit [Stufe 2b](stufe-2b-liste.md) · Lösung: [loesungen/stufe-2.md](../loesungen/stufe-2.md)

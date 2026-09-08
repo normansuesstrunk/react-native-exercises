@@ -2,7 +2,7 @@
 
 **Lernziele:** wiederverwendbare Komponenten mit klarer Prop-Schnittstelle · Callback-Props · *Lifting State Up* · Validierung über Props.
 
-**Voraussetzung:** [Stufe 2](stufe-2-state.md).
+**Voraussetzung:** [Stufe 2](stufe-2-state.md) (und optional [Stufe 2b](stufe-2b-liste.md)).
 
 ---
 
